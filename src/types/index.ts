@@ -30,3 +30,7 @@ export interface AuthState extends AuthUser {
   isAuthenticated: boolean;
 }
 
+export interface DateData {
+  date: string;
+  count: number;
+}

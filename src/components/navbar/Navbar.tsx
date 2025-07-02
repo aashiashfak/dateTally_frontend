@@ -27,7 +27,6 @@ const Navbar: React.FC = () => {
                 onClick={() => navigate("/")}
             >
                 <Logo />
-                <span className="text-lg font-semibold text-gray-800">DateTally</span>
             </div>
 
             {/* Auth Button */}

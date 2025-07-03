@@ -1,13 +1,18 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { fetchDateEntries, updateDateEntry } from "@/services/dateServices"
-
 
 interface DateEntry {
     date: string
@@ -25,31 +30,22 @@ interface DayData {
 export default function DateManager() {
     const [currentDate, setCurrentDate] = useState(new Date())
     const [dateEntries, setDateEntries] = useState<DateEntry[]>([])
+    const [editingCounts, setEditingCounts] = useState<{ [key: string]: string }>({})
     const [loading, setLoading] = useState(false)
     const [updating, setUpdating] = useState<string | null>(null)
+
+    const debounceTimers = useRef({})
 
     const currentYear = currentDate.getFullYear()
     const currentMonth = currentDate.getMonth()
     const today = new Date()
 
-    // Generate years for selector (current year ± 5 years)
     const years = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i)
     const months = [
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December",
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
     ]
 
-    // Fetch data from backend
     const getDateEntries = useCallback(async () => {
         setLoading(true)
         try {
@@ -63,11 +59,17 @@ export default function DateManager() {
         }
     }, [currentYear, currentMonth])
 
-    // Update count via API
-    const updateCount = async (date: string, count: number) => {
-        setUpdating(date)
+    useEffect(() => {
+        getDateEntries()
+        return () => {
+            Object.values(debounceTimers.current).forEach(clearTimeout)
+        }
+    }, [getDateEntries])
+
+    const updateCount = async (dateStr: string, count: number) => {
+        setUpdating(dateStr)
         try {
-            await updateDateEntry(date, count)
+            await updateDateEntry(dateStr, count)
             await getDateEntries()
         } catch (error) {
             console.error("Error updating count:", error)
@@ -76,67 +78,72 @@ export default function DateManager() {
         }
     }
 
-    // Generate calendar days
     const generateCalendarDays = (): DayData[] => {
         const firstDay = new Date(currentYear, currentMonth, 1)
-        const lastDay = new Date(currentYear, currentMonth + 1, 0)
         const startDate = new Date(firstDay)
         startDate.setDate(startDate.getDate() - firstDay.getDay())
 
         const days: DayData[] = []
-        const currentDate = new Date(startDate)
+        const current = new Date(startDate)
 
-        // Generate 42 days (6 weeks)
         for (let i = 0; i < 42; i++) {
-            const dateStr = currentDate.toLocaleDateString("en-CA")
+            const dateStr = current.toLocaleDateString("en-CA")
             const entry = dateEntries.find((e) => e.date === dateStr)
 
             days.push({
-                date: new Date(currentDate),
+                date: new Date(current),
                 count: entry?.count || 0,
-                isCurrentMonth: currentDate.getMonth() === currentMonth,
-                isFuture: currentDate > today,
-                isToday: currentDate.toDateString() === today.toDateString(),
+                isCurrentMonth: current.getMonth() === currentMonth,
+                isFuture: current > today,
+                isToday: current.toDateString() === today.toDateString(),
             })
 
-            currentDate.setDate(currentDate.getDate() + 1)
+            current.setDate(current.getDate() + 1)
         }
 
         return days
     }
 
-    const calendarDays = generateCalendarDays()
-    const totalCount = dateEntries.reduce((sum, entry) => sum + entry.count, 0)
+    const handleCountChange = (date: Date, value: string) => {
+        const dateStr = date.toLocaleDateString("en-CA")
+        setEditingCounts((prev) => ({ ...prev, [dateStr]: value }))
 
-    useEffect(() => {
-        getDateEntries()
-    }, [getDateEntries])
-
-    const handleYearChange = (year: string) => {
-        setCurrentDate(new Date(Number.parseInt(year), currentMonth, 1))
-    }
-
-    const handleMonthChange = (month: string) => {
-        setCurrentDate(new Date(currentYear, Number.parseInt(month), 1))
-    }
-
-    const navigateMonth = (direction: "prev" | "next") => {
-        const newDate = new Date(currentDate)
-        if (direction === "prev") {
-            newDate.setMonth(newDate.getMonth() - 1)
-        } else {
-            newDate.setMonth(newDate.getMonth() + 1)
+        // Clear previous debounce if any
+        if (debounceTimers.current[dateStr]) {
+            clearTimeout(debounceTimers.current[dateStr])
         }
+
+        // New debounce
+        debounceTimers.current[dateStr] = setTimeout(() => {
+            const finalValue = parseInt(value) || 0
+            updateCount(dateStr, finalValue)
+
+            setEditingCounts((prev) => {
+                const updated = { ...prev }
+                delete updated[dateStr]
+                return updated
+            })
+
+            delete debounceTimers.current[dateStr]
+        }, 1000)
+    }
+
+    const navigateMonth = (dir: "prev" | "next") => {
+        const newDate = new Date(currentDate)
+        newDate.setMonth(currentDate.getMonth() + (dir === "next" ? 1 : -1))
         setCurrentDate(newDate)
     }
 
-    const handleCountChange = (date: Date, value: string) => {
-        const count = Number.parseInt(value) || 0
-        if (count >= 0) {
-            const dateStr = date.toLocaleDateString("en-CA")
-            updateCount(dateStr, count)
-        }
+    const handleMonthChange = (val: string) => {
+        setCurrentDate(new Date(currentYear, parseInt(val), 1))
     }
+
+    const handleYearChange = (val: string) => {
+        setCurrentDate(new Date(parseInt(val), currentMonth, 1))
+    }
+
+    const calendarDays = generateCalendarDays()
+    const totalCount = dateEntries.reduce((sum, e) => sum + e.count, 0)
 
     return (
         <div className="max-w-4xl mx-auto p-6 space-y-6">
@@ -163,9 +170,7 @@ export default function DateManager() {
                                     </SelectTrigger>
                                     <SelectContent>
                                         {months.map((month, index) => (
-                                            <SelectItem key={index} value={index.toString()}>
-                                                {month}
-                                            </SelectItem>
+                                            <SelectItem key={index} value={index.toString()}>{month}</SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -176,9 +181,7 @@ export default function DateManager() {
                                     </SelectTrigger>
                                     <SelectContent>
                                         {years.map((year) => (
-                                            <SelectItem key={year} value={year.toString()}>
-                                                {year}
-                                            </SelectItem>
+                                            <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -205,41 +208,31 @@ export default function DateManager() {
                 <CardContent className="p-6">
                     {loading ? (
                         <div className="flex justify-center py-8">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
                         </div>
                     ) : (
                         <div className="grid grid-cols-7 gap-2">
-                            {/* Day headers */}
-                            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                                <div key={day} className="p-2 text-center font-medium text-muted-foreground">
-                                    {day}
-                                </div>
+                            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+                                <div key={d} className="text-center font-medium text-muted-foreground">{d}</div>
                             ))}
 
-                            {/* Calendar days */}
-                            {calendarDays.map((day, index) => {
-                                const dateStr = day.date.toISOString().split("T")[0]
+                            {calendarDays.map((day, i) => {
+                                const dateStr = day.date.toLocaleDateString("en-CA")
                                 const isUpdating = updating === dateStr
+                                const value = editingCounts[dateStr] ?? day.count.toString()
 
                                 return (
                                     <div
-                                        key={index}
+                                        key={i}
                                         className={cn(
                                             "sm:p-2 p-1 border rounded-lg transition-colors",
-                                            day.isCurrentMonth ? "bg-background" : "bg-muted/30",
+                                            day.isCurrentMonth ? "bg-green-200" : "bg-muted/30",
                                             day.isToday && "ring-2 ring-primary",
                                             day.isFuture && "opacity-60",
-                                            day.count > 0 && "bg-primary/20",
                                         )}
                                     >
-                                        <div className="text-center mb-2">
-                                            <span
-                                                className={cn(
-                                                    "text-sm",
-                                                    day.isCurrentMonth ? "text-foreground" : "text-muted-foreground",
-                                                    day.isToday && "font-bold",
-                                                )}
-                                            >
+                                        <div className="text-center mb-1 text-sm">
+                                            <span className={cn(day.isToday && "font-bold")}>
                                                 {day.date.getDate()}
                                             </span>
                                         </div>
@@ -248,18 +241,17 @@ export default function DateManager() {
                                             <Input
                                                 type="number"
                                                 min="0"
-                                                value={day.count}
+                                                value={value}
                                                 onChange={(e) => handleCountChange(day.date, e.target.value)}
                                                 disabled={!day.isCurrentMonth || day.isFuture || isUpdating}
                                                 className={cn(
-                                                    "h-8 text-center text-sm w-6 sm:w-16 p-0", // ✅ Adjust width: ~56px on mobile, ~64px on sm+
-                                                    day.isFuture && "cursor-not-allowed",
-                                                    isUpdating && "opacity-50"
-                                                )}
-                                                placeholder="0"
+                                                    day.count > 0 ? "text-black" : "text-gray-400",
+                                                    "h-8 text-center text-sm w-6 sm:w-16 p-0",
+                                                    "appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none", // ✅ Chrome, Safari
+                                                    "[appearance:textfield]" 
+                                                  )}
                                             />
                                         </div>
-
 
                                         {isUpdating && (
                                             <div className="flex justify-center mt-1">
@@ -271,26 +263,6 @@ export default function DateManager() {
                             })}
                         </div>
                     )}
-                </CardContent>
-            </Card>
-
-            {/* Legend */}
-            <Card>
-                <CardContent className="p-4">
-                    <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded border ring-2 ring-primary"></div>
-                            <span>Today</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded bg-muted/30"></div>
-                            <span>Other month</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded bg-background opacity-60"></div>
-                            <span>Future date (read-only)</span>
-                        </div>
-                    </div>
                 </CardContent>
             </Card>
         </div>

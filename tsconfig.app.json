@@ -1,8 +1,9 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "composite": true,                         // ✅ Add this line
     "module": "ESNext",
-    "moduleResolution": "bundler", 
+    "moduleResolution": "bundler",
     "target": "ESNext",
     "jsx": "react-jsx",
     "esModuleInterop": true,
@@ -12,7 +13,7 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": ["vite/client", "react"] 
+    "types": ["vite/client", "react"]
   },
   "include": ["src"]
 }

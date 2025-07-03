@@ -10,8 +10,10 @@
   ],
   "compilerOptions": {
     "baseUrl": ".",
+    "types": ["vite/client", "react"],
     "paths": {
       "@/*": ["./src/*"]
+
     }
   }
   

@@ -146,7 +146,7 @@ export default function DateManager() {
     const totalCount = dateEntries.reduce((sum, e) => sum + e.count, 0)
 
     return (
-        <div className="max-w-4xl mx-auto p-6 space-y-6">
+        <div className="max-w-4xl mx-auto p-2 sm:p-6 space-y-6">
             {/* Header */}
             <Card>
                 <CardHeader>
@@ -156,16 +156,16 @@ export default function DateManager() {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                    <div className="flex flex-col sm:flex-row gap-4 items-center justify-between p-2">
                         {/* Navigation */}
-                        <div className="flex items-center gap-2">
-                            <Button variant="outline" size="icon" onClick={() => navigateMonth("prev")}>
-                                <ChevronLeft className="h-4 w-4" />
+                        <div className="flex items-center gap-2 p-2 ">
+                            <Button className="shadow-theme-box-left" variant="outline" size="icon" onClick={() => navigateMonth("prev")}>
+                                <ChevronLeft className="h-4 w-4 " />
                             </Button>
 
-                            <div className="flex gap-2">
-                                <Select value={currentMonth.toString()} onValueChange={handleMonthChange}>
-                                    <SelectTrigger className="w-32">
+                            <div className="flex gap-2 ">
+                                <Select value={currentMonth.toString()} onValueChange={handleMonthChange} >
+                                    <SelectTrigger className="w-32 shadow-lg" >
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -176,7 +176,7 @@ export default function DateManager() {
                                 </Select>
 
                                 <Select value={currentYear.toString()} onValueChange={handleYearChange}>
-                                    <SelectTrigger className="w-20">
+                                    <SelectTrigger className="w-20 shadow-lg">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -187,15 +187,15 @@ export default function DateManager() {
                                 </Select>
                             </div>
 
-                            <Button variant="outline" size="icon" onClick={() => navigateMonth("next")}>
+                            <Button variant="outline" size="icon" className="shadow-theme-box-right" onClick={() => navigateMonth("next")}>
                                 <ChevronRight className="h-4 w-4" />
                             </Button>
                         </div>
 
                         {/* Total Count */}
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 shadow-lg pl-2 rounded-md">
                             <span className="text-sm font-medium">Total:</span>
-                            <Badge variant="secondary" className="text-lg px-3 py-1">
+                            <Badge variant="secondary" className="text-lg px-3 py-1 ">
                                 {totalCount}
                             </Badge>
                         </div>
@@ -205,7 +205,7 @@ export default function DateManager() {
 
             {/* Calendar */}
             <Card>
-                <CardContent className="p-6">
+                <CardContent className="p-2 sm:p-6">
                     {loading ? (
                         <div className="flex justify-center py-8">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
@@ -226,7 +226,7 @@ export default function DateManager() {
                                         key={i}
                                         className={cn(
                                             "sm:p-2 p-1 border rounded-lg transition-colors",
-                                            day.isCurrentMonth ? "bg-green-200" : "bg-muted/30",
+                                            day.isCurrentMonth ? "bg-gray-300" : "bg-muted/30",
                                             day.isToday && "ring-2 ring-primary",
                                             day.isFuture && "opacity-60",
                                         )}
@@ -246,8 +246,9 @@ export default function DateManager() {
                                                 disabled={!day.isCurrentMonth || day.isFuture || isUpdating}
                                                 className={cn(
                                                     day.count > 0 ? "text-black" : "text-gray-400",
+                                                    day.isCurrentMonth ? " border-black" :"",
                                                     "h-8 text-center text-sm w-6 sm:w-16 p-0",
-                                                    "appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none", // ✅ Chrome, Safari
+                                                    "appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none", 
                                                     "[appearance:textfield]" 
                                                   )}
                                             />

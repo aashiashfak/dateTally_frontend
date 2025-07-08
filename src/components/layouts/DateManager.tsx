@@ -246,7 +246,6 @@ export default function DateManager() {
                                                 disabled={!day.isCurrentMonth || day.isFuture || isUpdating}
                                                 className={cn(
                                                     day.count > 0 ? "text-black" : "text-gray-400",
-                                                    day.isCurrentMonth ? " border-black" :"",
                                                     "h-8 text-center text-sm w-6 sm:w-16 p-0",
                                                     "appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none", 
                                                     "[appearance:textfield]" 

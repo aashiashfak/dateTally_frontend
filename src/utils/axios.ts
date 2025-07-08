@@ -6,7 +6,7 @@ const isLocalhost = window.location.hostname === "localhost";
 
 const baseURL = isLocalhost
   ? "http://localhost:8000/"
-  : "https://date-tally-frontend.vercel.app/";
+  : "http://localhost:8000/";
 
 // Axios instance for regular API calls
 export const instance = axios.create({

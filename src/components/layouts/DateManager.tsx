@@ -14,6 +14,8 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { fetchDateEntries, updateDateEntry } from "@/services/dateServices"
 import { generateDateReportPdf } from "@/utils/datesPdf"
+import useToastNotification from "@/hooks/SonnerToast"
+
 
 interface DateEntry {
     date: string
@@ -34,6 +36,7 @@ export default function DateManager() {
     const [editingCounts, setEditingCounts] = useState<{ [key: string]: string }>({})
     const [loading, setLoading] = useState(false)
     const [updating, setUpdating] = useState<string | null>(null)
+    const showToast = useToastNotification()
 
     const debounceTimers = useRef({})
     const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({})
@@ -153,20 +156,29 @@ export default function DateManager() {
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center justify-between gap-2">
-                        <div>
+                        <div className="flex gap-2 items-center">
                             <Calendar className="h-5 w-5" />
                             Date Count Manager
                         </div>
                         <Button
                             variant="outline"
                             className="flex items-center gap-2 shadow-md"
-                            onClick={() => generateDateReportPdf({ currentYear, currentMonth, days: calendarDays, total: totalCount })}
+                            onClick={() => {
+                                if (totalCount === 0 ){
+                                    showToast("No data to export for this month.", "error")
+                                    return;
+                                }
+                                const confirmed = window.confirm("Do you want to download the PDF report?");
+                                if (!confirmed) return;
+                                generateDateReportPdf({ currentYear, currentMonth, days: calendarDays, total: totalCount })
+                            }}
+
                         >
                             Export PDF
                             <Download className="w-4 h-4" />
-                            
+
                         </Button>
-                       
+
                     </CardTitle>
                 </CardHeader>
                 <CardContent>

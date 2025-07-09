@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Calendar, ChevronLeft, ChevronRight } from "lucide-react"
+import { Calendar, ChevronLeft, ChevronRight, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,13 +13,14 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { fetchDateEntries, updateDateEntry } from "@/services/dateServices"
+import { generateDateReportPdf } from "@/utils/datesPdf"
 
 interface DateEntry {
     date: string
     count: number
 }
 
-interface DayData {
+export interface DayData {
     date: Date
     count: number
     isCurrentMonth: boolean
@@ -35,6 +36,8 @@ export default function DateManager() {
     const [updating, setUpdating] = useState<string | null>(null)
 
     const debounceTimers = useRef({})
+    const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({})
+
 
     const currentYear = currentDate.getFullYear()
     const currentMonth = currentDate.getMonth()
@@ -119,9 +122,8 @@ export default function DateManager() {
             updateCount(dateStr, finalValue)
 
             setEditingCounts((prev) => {
-                const updated = { ...prev }
-                delete updated[dateStr]
-                return updated
+                const { [dateStr]: _, ...rest } = prev
+                return rest
             })
 
             delete debounceTimers.current[dateStr]
@@ -150,9 +152,21 @@ export default function DateManager() {
             {/* Header */}
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Calendar className="h-5 w-5" />
-                        Date Count Manager
+                    <CardTitle className="flex items-center justify-between gap-2">
+                        <div>
+                            <Calendar className="h-5 w-5" />
+                            Date Count Manager
+                        </div>
+                        <Button
+                            variant="outline"
+                            className="flex items-center gap-2 shadow-md"
+                            onClick={() => generateDateReportPdf({ currentYear, currentMonth, days: calendarDays, total: totalCount })}
+                        >
+                            Export PDF
+                            <Download className="w-4 h-4" />
+                            
+                        </Button>
+                       
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -192,13 +206,33 @@ export default function DateManager() {
                             </Button>
                         </div>
 
-                        {/* Total Count */}
-                        <div className="flex items-center gap-2 shadow-lg pl-2 rounded-md">
-                            <span className="text-sm font-medium">Total:</span>
-                            <Badge variant="secondary" className="text-lg px-3 py-1 ">
-                                {totalCount}
-                            </Badge>
+                        {/* Total Count  and select Today*/}
+                        <div className="flex gap-3.5 justify-between">
+                            <Button
+                                className="shadow-lg"
+                                variant="outline"
+                                onClick={() => {
+                                    setCurrentDate(today)
+                                    setTimeout(() => {
+                                        const todayStr = today.toLocaleDateString("en-CA")
+                                        const input = inputRefs.current[todayStr]
+                                        if (input) {
+                                            input.scrollIntoView({ behavior: "smooth", block: "center" })
+                                            input.focus()
+                                        }
+                                    }, 1000)
+                                }}
+                            >
+                                Select Today
+                            </Button>
+                            <div className=" items-center gap-2 shadow-lg pl-2 rounded-md bg-secondary">
+                                <span className="text-sm font-medium">Total:</span>
+                                <Badge variant="secondary" className="text-lg px-3  pb-1">
+                                    {totalCount}
+                                </Badge>
+                            </div>
                         </div>
+
                     </div>
                 </CardContent>
             </Card>
@@ -239,6 +273,9 @@ export default function DateManager() {
 
                                         <div className="flex justify-center">
                                             <Input
+                                                ref={(el) => {
+                                                    inputRefs.current[dateStr] = el
+                                                }}
                                                 type="number"
                                                 min="0"
                                                 value={value}
@@ -246,10 +283,10 @@ export default function DateManager() {
                                                 disabled={!day.isCurrentMonth || day.isFuture || isUpdating}
                                                 className={cn(
                                                     day.count > 0 ? "text-black" : "text-gray-400",
-                                                    "h-8 text-center text-sm w-6 sm:w-16 p-0",
-                                                    "appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none", 
-                                                    "[appearance:textfield]" 
-                                                  )}
+                                                    "h-8 text-center text-sm w-6 sm:w-16 p-0 rounded-md transition-all",
+                                                    "appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
+                                                    "[appearance:textfield]",
+                                                )}
                                             />
                                         </div>
 

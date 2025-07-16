@@ -232,14 +232,22 @@ export default function DateManager() {
                                 variant="outline"
                                 onClick={() => {
                                     setCurrentDate(today)
-                                    setTimeout(() => {
-                                        const todayStr = today.toLocaleDateString("en-CA")
+                                    const todayStr = today.toLocaleDateString("en-CA")
+                                    let attempts = 0
+                                    const tryFocus = () => {
                                         const input = inputRefs.current[todayStr]
                                         if (input) {
                                             input.scrollIntoView({ behavior: "smooth", block: "center" })
                                             input.focus()
+                                        } else if (attempts < 5) {
+                                            attempts++
+                                            setTimeout(tryFocus, 200)
+                                        } else {
+                                            console.warn("Could not focus input after multiple attempts")
                                         }
-                                    }, 1000)
+                                    }
+
+                                    setTimeout(tryFocus, 200)
                                 }}
                             >
                                 Select Today

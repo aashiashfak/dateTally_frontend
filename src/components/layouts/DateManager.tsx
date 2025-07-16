@@ -69,14 +69,17 @@ export default function DateManager() {
         getDateEntries()
         return () => {
             Object.values(debounceTimers.current).forEach(clearTimeout)
-        }
-    }, [getDateEntries])
+          }
+    }, [currentDate])
 
     const updateCount = async (dateStr: string, count: number) => {
         setUpdating(dateStr)
         try {
             await updateDateEntry(dateStr, count)
-            await getDateEntries()
+            setDateEntries(prev => prev.map(entry =>
+                entry.date === dateStr ? { ...entry, count: count } : entry
+            ))
+            showToast(`Updated count ${count} on ${dateStr}`,"success" ) 
         } catch (error) {
             console.error("Error updating count:", error)
         } finally {
@@ -164,7 +167,7 @@ export default function DateManager() {
                             variant="outline"
                             className="flex items-center gap-2 shadow-md"
                             onClick={() => {
-                                if (totalCount === 0 ){
+                                if (totalCount === 0) {
                                     showToast("No data to export for this month.", "error")
                                     return;
                                 }

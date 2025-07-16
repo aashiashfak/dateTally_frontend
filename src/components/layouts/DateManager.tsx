@@ -69,17 +69,21 @@ export default function DateManager() {
         getDateEntries()
         return () => {
             Object.values(debounceTimers.current).forEach(clearTimeout)
-          }
+        }
     }, [currentDate])
 
     const updateCount = async (dateStr: string, count: number) => {
         setUpdating(dateStr)
         try {
             await updateDateEntry(dateStr, count)
-            setDateEntries(prev => prev.map(entry =>
-                entry.date === dateStr ? { ...entry, count: count } : entry
-            ))
-            showToast(`Updated count ${count} on ${dateStr}`,"success" ) 
+            setDateEntries(prev =>
+                prev.some(e => e.date === dateStr)
+                    ? prev.map(entry =>
+                        entry.date === dateStr ? { ...entry, count } : entry
+                    )
+                    : [...prev, { date: dateStr, count }] 
+            )
+            showToast(`Updated count ${count} on ${dateStr}`, "success")
         } catch (error) {
             console.error("Error updating count:", error)
         } finally {

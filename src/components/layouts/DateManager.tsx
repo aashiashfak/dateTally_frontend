@@ -76,7 +76,14 @@ export default function DateManager() {
         setUpdating(dateStr)
         try {
             await updateDateEntry(dateStr, count)
-            await getDateEntries()
+            setDateEntries(prev =>
+                prev.some(e => e.date === dateStr)
+                    ? prev.map(entry =>
+                        entry.date === dateStr ? { ...entry, count } : entry
+                    )
+                    : [...prev, { date: dateStr, count }]
+            )
+            showToast(`Updated count ${count} on ${dateStr}`, "success")
         } catch (error) {
             console.error("Error updating count:", error)
         } finally {
@@ -164,7 +171,7 @@ export default function DateManager() {
                             variant="outline"
                             className="flex items-center gap-2 shadow-md"
                             onClick={() => {
-                                if (totalCount === 0 ){
+                                if (totalCount === 0) {
                                     showToast("No data to export for this month.", "error")
                                     return;
                                 }

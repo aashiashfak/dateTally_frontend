@@ -242,7 +242,7 @@ export default function DateManager() {
                                     }, 1000)
                                 }}
                             >
-                                Select Today
+                                {currentDate.toDateString() === today.toDateString() ? "Select Today" : "This Month"}
                             </Button>
                             <div className=" items-center gap-2 shadow-lg pl-2 rounded-md bg-secondary">
                                 <span className="text-sm font-medium">Total:</span>

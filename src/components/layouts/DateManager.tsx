@@ -45,7 +45,6 @@ export default function DateManager() {
     const currentYear = currentDate.getFullYear()
     const currentMonth = currentDate.getMonth()
     const today = new Date()
-
     const years = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i)
     const months = [
         "January", "February", "March", "April", "May", "June",
@@ -81,7 +80,7 @@ export default function DateManager() {
                     ? prev.map(entry =>
                         entry.date === dateStr ? { ...entry, count } : entry
                     )
-                    : [...prev, { date: dateStr, count }] 
+                    : [...prev, { date: dateStr, count }]
             )
             showToast(`Updated count ${count} on ${dateStr}`, "success")
         } catch (error) {
@@ -197,6 +196,7 @@ export default function DateManager() {
                             </Button>
 
                             <div className="flex gap-2 ">
+                                {/* months */}
                                 <Select value={currentMonth.toString()} onValueChange={handleMonthChange} >
                                     <SelectTrigger className="w-32 shadow-lg" >
                                         <SelectValue />
@@ -207,7 +207,7 @@ export default function DateManager() {
                                         ))}
                                     </SelectContent>
                                 </Select>
-
+                                {/* year */}
                                 <Select value={currentYear.toString()} onValueChange={handleYearChange}>
                                     <SelectTrigger className="w-20 shadow-lg">
                                         <SelectValue />

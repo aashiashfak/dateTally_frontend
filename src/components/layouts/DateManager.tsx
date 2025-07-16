@@ -45,6 +45,7 @@ export default function DateManager() {
     const currentYear = currentDate.getFullYear()
     const currentMonth = currentDate.getMonth()
     const today = new Date()
+
     const years = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i)
     const months = [
         "January", "February", "March", "April", "May", "June",
@@ -69,20 +70,13 @@ export default function DateManager() {
         return () => {
             Object.values(debounceTimers.current).forEach(clearTimeout)
         }
-    }, [currentDate])
+    }, [getDateEntries])
 
     const updateCount = async (dateStr: string, count: number) => {
         setUpdating(dateStr)
         try {
             await updateDateEntry(dateStr, count)
-            setDateEntries(prev =>
-                prev.some(e => e.date === dateStr)
-                    ? prev.map(entry =>
-                        entry.date === dateStr ? { ...entry, count } : entry
-                    )
-                    : [...prev, { date: dateStr, count }]
-            )
-            showToast(`Updated count ${count} on ${dateStr}`, "success")
+            await getDateEntries()
         } catch (error) {
             console.error("Error updating count:", error)
         } finally {
@@ -170,7 +164,7 @@ export default function DateManager() {
                             variant="outline"
                             className="flex items-center gap-2 shadow-md"
                             onClick={() => {
-                                if (totalCount === 0) {
+                                if (totalCount === 0 ){
                                     showToast("No data to export for this month.", "error")
                                     return;
                                 }
@@ -196,7 +190,6 @@ export default function DateManager() {
                             </Button>
 
                             <div className="flex gap-2 ">
-                                {/* months */}
                                 <Select value={currentMonth.toString()} onValueChange={handleMonthChange} >
                                     <SelectTrigger className="w-32 shadow-lg" >
                                         <SelectValue />
@@ -207,7 +200,7 @@ export default function DateManager() {
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                {/* year */}
+
                                 <Select value={currentYear.toString()} onValueChange={handleYearChange}>
                                     <SelectTrigger className="w-20 shadow-lg">
                                         <SelectValue />
@@ -239,7 +232,7 @@ export default function DateManager() {
                                             input.scrollIntoView({ behavior: "smooth", block: "center" })
                                             input.focus()
                                         }
-                                    }, 1500)
+                                    }, 1000)
                                 }}
                             >
                                 Select Today

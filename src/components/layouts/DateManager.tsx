@@ -279,10 +279,12 @@ export default function DateManager() {
                                         key={i}
                                         className={cn(
                                             "sm:p-2 p-1 border rounded-lg transition-colors",
-                                            day.isCurrentMonth ? "bg-gray-300" : "bg-muted/30",
+                                            day.isCurrentMonth
+                                                ? "bg-gray-300 dark:bg-gray-700"
+                                                : "bg-muted/30 dark:bg-muted/10",
                                             day.isToday && "ring-2 ring-primary",
-                                            day.isFuture && "opacity-60",
-                                        )}
+                                            day.isFuture && "opacity-60"
+                                          )}
                                     >
                                         <div className="text-center mb-1 text-sm">
                                             <span className={cn(day.isToday && "font-bold")}>
@@ -301,11 +303,14 @@ export default function DateManager() {
                                                 onChange={(e) => handleCountChange(day.date, e.target.value)}
                                                 disabled={!day.isCurrentMonth || day.isFuture || isUpdating}
                                                 className={cn(
-                                                    day.count > 0 ? "text-black" : "text-gray-400",
+                                                    day.count > 0
+                                                        ? "text-black dark:text-white"
+                                                        : "text-gray-500 dark:text-gray-400",
                                                     "h-8 text-center text-sm w-6 sm:w-16 p-0 rounded-md transition-all",
                                                     "appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
                                                     "[appearance:textfield]",
-                                                )}
+                                                    "bg-background text-foreground border border-border"
+                                                  )}
                                             />
                                         </div>
 

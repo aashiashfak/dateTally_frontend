@@ -7,7 +7,7 @@ const Logo: React.FC = () => {
             <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
                 <CalendarDays className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl md:text-2xl font-extrabold text-gray-800 tracking-wide">
+            <span className="text-xl md:text-2xl font-extrabold text-gray-800 tracking-wide dark:text-gray-200">
                 DateTally
             </span>
         </div>
